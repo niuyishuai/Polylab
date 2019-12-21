@@ -2,8 +2,11 @@
 A MATLAB multivariate polynomial toolbox (for multivariate polynomial matrix and its operations)
 
 ## Installation
-  Run `install` to add path and compile mex file
-
+  1. Download the package to a local folder by running:
+```console
+git clone https://github.com/niuyishuai/Polylab.git
+```
+  2. Run Matlab and navigate to the code folder, then run the `install.m` script to add paths and compile mex file.
 ```matlab
 install;
 ```
