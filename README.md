@@ -13,7 +13,7 @@ install;
 
 ## Examples
   See examples in `test_MPOLY.m`
-  
+
 ## Citation
 
 ```
@@ -24,3 +24,11 @@ install;
 	howpublished = {\url{https://github.com/niuyishuai/Polylab}}
 }
 ```
+
+## License
+-------
+Released under MIT license
+
+## Contact
+-------
+niuyishuai82@gmail.com
