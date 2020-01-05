@@ -1,5 +1,7 @@
 # Polylab
-A MATLAB multivariate polynomial toolbox (for multivariate polynomial matrix and its operations)
+A MATLAB multivariate polynomial toolbox (for multivariate polynomial matrix and its operations).
+
+This project is supported by the National Natural Science Foundation of China (Grant No: 11601327) and the Key Construction National “985” Program of China (Grant No: WF220426001).
 
 ## Installation
   1. Download the package to a local folder by running:
