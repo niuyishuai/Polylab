@@ -23,7 +23,7 @@ install;
 	title = {POLYLAB -- A MATLAB Multivariate Polynomial Toolbox},
 	author = {Yi-Shuai Niu},	
 	year = {2019},
-	howpublished = {\url{https://github.com/niuyishuai/Polylab}}
+	url = {https://github.com/niuyishuai/Polylab}
 }
 ```
 
