@@ -21,7 +21,7 @@ function p=mpoly2yalmip(P,x)
     %   sdisplay(p);
     %
     %%
-    %  See also mpoly, mpoly_zeros, sdpvar
+    %  See also MPOLY, MPOLY.zeros, sdpvar
     %
     %% COPYRIGHT:
     %  Copyright 2019, Yi-Shuai NIU. All Rights Reserved.

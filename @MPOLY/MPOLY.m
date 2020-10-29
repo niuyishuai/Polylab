@@ -26,7 +26,7 @@ classdef MPOLY
     %       P = MPOLY(3,1,zeros(1,3))
     %
     %% COPYRIGHT:
-    %  Copyright 2019, Yi-Shuai NIU. All Rights Reserved.
+    %  Copyright since 2019, Yi-Shuai NIU. All Rights Reserved.
     %  2019/04/10   Initial Coding
     %  2019/08/25   Improvement
     
@@ -95,7 +95,7 @@ classdef MPOLY
             %  See also MPOLY, disp
             %
             %% COPYRIGHT:
-            %  Copyright 2019, Yi-Shuai NIU. All Rights Reserved.
+            %  Copyright since 2019, Yi-Shuai NIU. All Rights Reserved.
             %  2019/08/13    Initial Coding
             [mm,nn]=size(obj);
             fprintf('--------------------------------------------------\n')
@@ -127,7 +127,7 @@ classdef MPOLY
             %  See also mpoly, disp
             %
             %% COPYRIGHT:
-            %  Copyright 2019, Yi-Shuai NIU. All Rights Reserved.
+            %  Copyright since 2019, Yi-Shuai NIU. All Rights Reserved.
             %  2019/08/13    Initial Coding
             if nargin<2
                 format='%.6e';
@@ -168,7 +168,7 @@ classdef MPOLY
             %  See also MPOLY, MPOLY.ne
             %
             %% COPYRIGHT:
-            %  Copyright 2019, Yi-Shuai NIU. All Rights Reserved.
+            %  Copyright since 2019, Yi-Shuai NIU. All Rights Reserved.
             %  2019/08/13    Initial Coding
             
             b=false;
@@ -222,7 +222,7 @@ classdef MPOLY
             %  See also mpoly
             %
             %% COPYRIGHT:
-            %  Copyright 2019, Yi-Shuai NIU. All Rights Reserved.
+            %  Copyright since 2019, Yi-Shuai NIU. All Rights Reserved.
             %  2019/08/13    Initial Coding
             
             if numel(obj)==1 % for polynomial scalar
@@ -255,7 +255,7 @@ classdef MPOLY
             %  See also mpoly, mono
             %
             %% COPYRIGHT:
-            %  Copyright 2019, Yi-Shuai NIU. All Rights Reserved.
+            %  Copyright since 2019, Yi-Shuai NIU. All Rights Reserved.
             %  2019/08/13    Initial Coding
             
             if numel(obj) > 1
@@ -290,7 +290,7 @@ classdef MPOLY
             %  See also mpoly, coefficients
             %
             %% COPYRIGHT:
-            %  Copyright 2019, Yi-Shuai NIU. All Rights Reserved.
+            %  Copyright since 2019, Yi-Shuai NIU. All Rights Reserved.
             %  2019/08/13    Initial Coding
             if numel(obj)>1
                 error('mono is not for matrix');
@@ -344,6 +344,48 @@ classdef MPOLY
             end
         end
         
+        function newobj=subs(obj,x)
+            %MPOLY.subs
+            %% DESCRIPTION:
+            %  Substitute the default variables of the polynomial/polynomial matrix 
+            %  by new expression x.
+            %% SYNTAX:
+            %   newobj = obj.subs(x)
+            %% INPUTS:
+            %  x: the expression to replace the default variable
+            %% OUTPUTS:
+            %  newobj: polynomial/polynomial matrix/double scalar/double matrix
+            %% EXAMPLE:
+            %       x = polylabvar(2);
+            %       f = x(1) + x(1)*x(2);
+            %       y = polylabvar(2);
+            %       g = f.subs((1+y));
+            %       g.sdisp;
+            %%
+            %  See also MPOLY, sdisp, plus, mtimes, polylabvar
+            %
+            %% COPYRIGHT:
+            %  Copyright since 2019, Yi-Shuai NIU. All Rights Reserved.
+            %  2020/08/21    Initial Coding
+            method = 1;
+            switch method
+                case 1
+                    % first method (using cellfun)
+                    X=repmat(x',obj.k,1);
+                    f=@(coef,pow) coef'*prod(X.^pow,2);
+                    newobj = cellfun(f,{obj.coef},{obj.pow});
+                    newobj = reshape(newobj,size(obj));
+                case 2
+                    % second method (using arrayfun)
+                    i=1:1:numel(obj);
+                    X=repmat(x',obj.k,1);
+                    f = @(i) obj(i).coef'*prod(X.^(obj(i).pow),2);
+                    newobj = arrayfun(f,i);
+                    newobj = reshape(newobj,size(obj));
+            end
+            newobj=newobj.simplify;
+        end
+        
         %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
         % Polynomial operations
         %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -372,7 +414,7 @@ classdef MPOLY
             %  See also MPOLY, sdisp, uplus, minus, uminus, sum
             %
             %% COPYRIGHT:
-            %  Copyright 2019, Yi-Shuai NIU. All Rights Reserved.
+            %  Copyright since 2019, Yi-Shuai NIU. All Rights Reserved.
             %  2019/08/13    Initial Coding
             
             % convert all type into polynomial matrices
@@ -387,7 +429,7 @@ classdef MPOLY
                     newobj(i).coef=[op1(i).coef; op2(i).coef];
                     newobj(i).k=op1(i).k + op2(i).k;
                 end
-                newobj=newobj.simplify; % comment for speed
+                %newobj=newobj.simplify; % comment for speed
             end
         end
         
@@ -411,13 +453,13 @@ classdef MPOLY
             %  See also MPOLY, sdisp, plus, minus, uminus, sum
             %
             %% COPYRIGHT:
-            %  Copyright 2019, Yi-Shuai NIU. All Rights Reserved.
+            %  Copyright since 2019, Yi-Shuai NIU. All Rights Reserved.
             %  2019/08/13    Initial Coding
             
             newobj = obj;
         end
         
-        function newobj = sum(obj)
+        function newobj = sum(obj,d)
             %MPOLY.sum
             %% DESCRIPTION:
             %  Addition of polynomials.
@@ -425,6 +467,7 @@ classdef MPOLY
             %   newobj = obj.sum
             %% INPUTS:
             %  obj: polynomial matrix
+            %  d: sum directions (1: by column (default), 2: by row)
             %% OUTPUTS:
             %  newobj: polynomial / polynomial matrix
             %% EXAMPLE:
@@ -432,9 +475,13 @@ classdef MPOLY
             %  See also mpoly, simplify, plus
             %
             %% COPYRIGHT:
-            %  Copyright 2019, Yi-Shuai NIU. All Rights Reserved.
+            %  Copyright since 2019, Yi-Shuai NIU. All Rights Reserved.
             %  2019/08/13    Initial Coding
+            %  2020/08/21    Sum by direction
             
+            if nargin<2
+                d=1;
+            end
             [~,nn]=size(obj); % get polynomial matrix size
             
             if isvector(obj) % sum one row or column vector
@@ -442,13 +489,60 @@ classdef MPOLY
                 newobj.k=sum([obj.k]);
                 newobj.coef=vertcat(obj.coef);
                 newobj.pow=vertcat(obj.pow);
-            else % sum a matrix by column
+            elseif d==1 % sum a matrix by column
                 newobj=MPOLY.zeros(obj(1).n,1,nn);
                 for j=1:nn
                     newobj(j)=obj(:,j).sum;
                 end
+            else % sum a matrix by row
+                newobj=sum((obj'),1);
+                newobj=newobj';
             end
-            newobj=newobj.simplify;
+            %newobj=newobj.simplify; % comment for speed
+        end
+        
+        function newobj = prod(obj,d)
+            %MPOLY.prod
+            %% DESCRIPTION:
+            %  Multiply of a polynomial matrix.
+            %% SYNTAX:
+            %   newobj = obj.prod
+            %% INPUTS:
+            %  obj: polynomial matrix
+            %  d: product direction (1: by column (default), 2: by row)
+            %% OUTPUTS:
+            %  newobj: polynomial / polynomial matrix
+            %% EXAMPLE:
+            %%
+            %  See also mpoly, simplify, mtimes
+            %
+            %% COPYRIGHT:
+            %  Copyright since 2019, Yi-Shuai NIU. All Rights Reserved.
+            %  2020/06/26    Initial Coding
+            %  2020/08/21    Prod by direction
+            
+            if nargin<2
+                d=1;
+            end
+            if min(size(obj))==1 %isvector(obj) % multiply one row or column vector
+                newobj=obj(1);
+                for i=2:numel(obj)
+                    newobj = newobj*obj(i);
+                end
+            elseif d==1 % multiply a matrix by column
+                [mm,nn]=size(obj); % get polynomial matrix size
+                newobj=obj(1,:); %MPOLY.zeros(obj(1).n,1,nn);
+                for j=1:nn
+                    for i=2:mm
+                        newobj(j) = newobj(j)*obj(i,j);
+                    end
+                    %newobj(j)=obj(:,j).prod;
+                end
+            else % multiply a matrix by row
+                newobj=prod((obj'),1);
+                newobj=newobj';
+            end
+            %newobj=newobj.simplify;
         end
         
         function newobj = minus(obj1,obj2)
@@ -476,7 +570,7 @@ classdef MPOLY
             %  MPOLY.uminus
             %
             %% COPYRIGHT:
-            %  Copyright 2019, Yi-Shuai NIU. All Rights Reserved.
+            %  Copyright since 2019, Yi-Shuai NIU. All Rights Reserved.
             %  2019/08/13    Initial Coding
             
             newobj = plus(obj1,-obj2);
@@ -502,7 +596,7 @@ classdef MPOLY
             %  See also mpoly, minus, plus, uplus, sdisp
             %
             %% COPYRIGHT:
-            %  Copyright 2019, Yi-Shuai NIU. All Rights Reserved.
+            %  Copyright since 2019, Yi-Shuai NIU. All Rights Reserved.
             %  2019/08/13    Initial Coding
             
             newobj = obj;
@@ -536,10 +630,10 @@ classdef MPOLY
             %  See also MPOLY, sdisp, times
             %
             %% COPYRIGHT:
-            %  Copyright 2019, Yi-Shuai NIU. All Rights Reserved.
+            %  Copyright since 2019, Yi-Shuai NIU. All Rights Reserved.
             %  2019/08/13    Initial Coding
             %  2019/08/23    Improve for speed
-            
+            %  2020/10/21    Improve using indexing and vectorization
             len1 = numel(obj1);
             len2 = numel(obj2);
             % case 1: polynomial scalar * polynomial scalar
@@ -549,13 +643,23 @@ classdef MPOLY
                 else
                     newobj = MPOLY(obj1.n);
                     newobj.k=obj1.k*obj2.k;
-                    newobj.coef= reshape(obj2.coef*obj1.coef',newobj.k,1); % kron(obj1.coef,obj2.coef);
-                    %newobj.pow=repmat(obj2.pow,obj1.k,1);
-                    cc = cell(obj1.k,1);
-                    for i=1:obj1.k
-                        cc{i} = obj1.pow(i,:)+obj2.pow;
+                    % using indexing and vectorization
+                    isvectorize=true;
+                    if isvectorize
+                        ridx=repelem(1:obj1.k,obj2.k)';
+                        cidx=repmat(1:obj2.k,1,obj1.k)';
+                        newobj.coef=obj1.coef(ridx).*obj2.coef(cidx);
+                        newobj.pow=obj1.pow(ridx,:)+obj2.pow(cidx,:);
+                    else
+                        % using loops
+                        newobj.coef= reshape(obj2.coef*obj1.coef',newobj.k,1); % kron(obj1.coef,obj2.coef);
+                        %newobj.pow=repmat(obj2.pow,obj1.k,1);
+                        cc = cell(obj1.k,1);
+                        for i=1:obj1.k
+                            cc{i} = obj1.pow(i,:)+obj2.pow;
+                        end
+                        newobj.pow = cell2mat(cc);
                     end
-                    newobj.pow = cell2mat(cc);
                 end
                 return;
             end
@@ -640,7 +744,7 @@ classdef MPOLY
             end
         end
         
-        function newobj = mtimes__(obj1,obj2)
+        %function newobj = mtimes__(obj1,obj2)
             %MPOLY.mtimes
             %% DESCRIPTION:
             %  Polynomial matrix multiplication (not for Matlab Coder)
@@ -665,7 +769,7 @@ classdef MPOLY
             %  See also MPOLY, sdisp, times
             %
             %% COPYRIGHT:
-            %  Copyright 2019, Yi-Shuai NIU. All Rights Reserved.
+            %  Copyright since 2019, Yi-Shuai NIU. All Rights Reserved.
             %  2019/08/13    Initial Coding
             %  2019/08/23    Improve for speed
             
@@ -747,7 +851,7 @@ classdef MPOLY
             %                     end
             %                 end
             %             end
-        end
+        %end
         
         function newobj = times(obj1,obj2)
             %MPOLY.times
@@ -778,7 +882,7 @@ classdef MPOLY
             %  See also mpoly, sdisp
             %
             %% COPYRIGHT:
-            %  Copyright 2019, Yi-Shuai NIU. All Rights Reserved.
+            %  Copyright since 2019, Yi-Shuai NIU. All Rights Reserved.
             %  2019/08/13    Initial Coding
             
             [obj1,obj2] = sizeunified(obj1,obj2);
@@ -816,8 +920,9 @@ classdef MPOLY
             %  See also mpoly, power
             %
             %% COPYRIGHT:
-            %  Copyright 2019, Yi-Shuai NIU. All Rights Reserved.
+            %  Copyright since 2019, Yi-Shuai NIU. All Rights Reserved.
             %  2019/08/13    Initial Coding
+            %  2020/10/21    Improve fast power
             
             if size(obj,1)~=size(obj,2)
                 error('obj must be a square matrix!');
@@ -826,6 +931,7 @@ classdef MPOLY
             else
                 if a==0
                     if MPOLY.iszero(obj)
+                        % return 0
                         newobj = obj;
                     else
                         % return identity matrix
@@ -836,9 +942,31 @@ classdef MPOLY
                     newobj = obj;
                 elseif a>1 && norm(a-round(a),1)==0
                     % return obj^a
-                    newobj = obj;
-                    for i=2:a
-                        newobj = obj*newobj;
+                    method=1; % 1 for big power, 2 for naive power
+                    switch method
+                        case 1
+                            % big power
+                            newobj=obj*obj;
+                            if a==2
+                                % return obj^2
+                                %newobj=newobj.simplify;
+                                return;
+                            end
+                            if mod(a,2)==0
+                                % return (obj^2)^(floor(a/2))
+                                newobj = newobj^(floor(a/2));
+                                %newobj=newobj.simplify;
+                            else
+                                % return obj*(obj^2)^(floor(a/2))
+                                newobj = obj*newobj^(floor(a/2));
+                                %newobj=newobj.simplify;
+                            end
+                        case 2
+                            % naive power
+                            newobj = obj;
+                            for i=2:a
+                                newobj = obj*newobj;
+                            end
                     end
                 else
                     error('Exponent can not be fractional or negative!');
@@ -874,7 +1002,7 @@ classdef MPOLY
             %  See also mpoly, mpower, sdisp, MPOLY.mpolyvars
             %
             %% COPYRIGHT:
-            %  Copyright 2019, Yi-Shuai NIU. All Rights Reserved.
+            %  Copyright since 2019, Yi-Shuai NIU. All Rights Reserved.
             %  2019/08/13    Initial Coding
             
             
@@ -940,7 +1068,7 @@ classdef MPOLY
             %  See also MPOLY, jacobian
             %
             %% COPYRIGHT:
-            %  Copyright 2019, Yi-Shuai NIU. All Rights Reserved.
+            %  Copyright since 2019, Yi-Shuai NIU. All Rights Reserved.
             %  2019/08/13    Initial Coding
             if numel(obj) >1
                 error('Not for matrix! using jacabian for matrix.');
@@ -972,7 +1100,7 @@ classdef MPOLY
             %  See also MPOLY, MPOLY.mpolyvars, MPOLY.zeros, plus, mtimes, sdisp
             %
             %% COPYRIGHT:
-            %  Copyright 2019, Yi-Shuai NIU. All Rights Reserved. 2019/08/13
+            %  Copyright since 2019, Yi-Shuai NIU. All Rights Reserved. 2019/08/13
             %  Initial Coding
             
             newobj=MPOLY.zeros(obj(1).n,numel(obj),obj(1).n);
@@ -987,7 +1115,7 @@ classdef MPOLY
         function newobj = simplify(obj,zeroprec)
             %MPOLY.simplify
             %% DESCRIPTION:
-            %  simplify a polynomial matrix and eliminate all monomials with zero
+            %  simplify a polynomial matrix (by sortrows) and eliminate all monomials with zero
             %  leading coefficients with given precision.
             %% SYNTAX:
             %   newobj = obj.simplify
@@ -1008,7 +1136,7 @@ classdef MPOLY
             %  See also MPOLY, disp, sdisp
             %
             %% COPYRIGHT:
-            %  Copyright 2019, Yi-Shuai NIU. All Rights Reserved.
+            %  Copyright since 2019, Yi-Shuai NIU. All Rights Reserved.
             %  2019/08/13    Initial Coding
             
             if nargin<2
@@ -1024,7 +1152,7 @@ classdef MPOLY
                 % in the sorted power, find non repeated rows
                 repidx=[1;any(tpow(2:end,:)~=tpow(1:end-1,:),2)];
                 % extract non repeated pow
-                tpow=tpow(repidx==1,:);
+                tpow=tpow(logical(repidx),:);
                 % sum repeated coefs (using sparse matrix)
                 tcoef=sparse(cumsum(repidx),sortidx,1)*tcoef;
                 
@@ -1050,7 +1178,67 @@ classdef MPOLY
                 end
             end
         end
-        
+
+        function newobj = simplify_byunique(obj,zeroprec)
+            %MPOLY.simplify
+            %% DESCRIPTION:
+            %  simplify a polynomial matrix (by unique) and eliminate all monomials 
+            %  with zero leading coefficients with given precision.
+            %% SYNTAX:
+            %   newobj = obj.simplify_byunique
+            %   newobj = obj.simplify_byunique(zeroprec)
+            %% INPUTS:
+            %  zeroprec: precesion of zero, default 1e-8, this is used for eliminate
+            %  monomials with zero coefficient, i.e., |coef|<zeroprec
+            %% OUTPUTS:
+            %  newobj: simplified polynomial matrix
+            %% EXAMPLE:
+            %       p = MPOLY(3,[1;2],[1 0 1;1 0 1]);
+            %       p.disp;
+            %       p.sdisp;
+            %       p = p.simplify;
+            %       p.disp;
+            %       p.sdisp;
+            %%
+            %  See also MPOLY, disp, sdisp
+            %
+            %% COPYRIGHT:
+            %  Copyright since 2019, Yi-Shuai NIU. All Rights Reserved.
+            %  2020/10/21    Initial Coding
+            
+            if nargin<2
+                zeroprec = 1e-8;
+            end
+            nvar=obj(1).n;
+            if isscalar(obj) % for scalar polynomial
+                % unique monomials
+                [tpow,~,ic]=unique(obj.pow,'row');
+                % sum repeated coefs (using sparse matrix)
+                tcoef=sparse(ic,1:length(ic),1)*obj.coef;
+                
+                % Eliminate zero coefs
+                idx = find(abs(tcoef)>zeroprec);
+                tpow=tpow(idx,:);
+                tcoef=tcoef(idx);
+                
+                % if we get empty list, which means zero polynomial
+                if isempty(tcoef)
+                    newobj = MPOLY(nvar);
+                else
+                    % create result polynomial
+                    newobj = MPOLY(nvar);
+                    newobj.k=length(tcoef);
+                    newobj.coef = tcoef;
+                    newobj.pow = tpow;
+                end
+            else % for matrix polynomial
+                newobj=MPOLY.zeros(nvar,size(obj,1),size(obj,2));
+                for i=1:numel(obj)
+                    newobj(i) = obj(i).simplify(zeroprec);
+                end
+            end
+        end
+
         function newobj = diag(obj)
             %MPOLY.diag
             %% DESCRIPTION:
@@ -1071,7 +1259,7 @@ classdef MPOLY
             %  See also MPOLY, disp, sdisp, MPOLY.identity
             %
             %% COPYRIGHT:
-            %  Copyright 2019, Yi-Shuai NIU. All Rights Reserved.
+            %  Copyright since 2019, Yi-Shuai NIU. All Rights Reserved.
             %  2019/08/25    Initial Coding
             
             [mm,nn]=size(obj);
@@ -1109,7 +1297,7 @@ classdef MPOLY
             %  See also MPOLY, disp, sdisp, MPOLY.identity, MPOLY.diag
             %
             %% COPYRIGHT:
-            %  Copyright 2019, Yi-Shuai NIU. All Rights Reserved.
+            %  Copyright since 2019, Yi-Shuai NIU. All Rights Reserved.
             %  2019/08/25    Initial Coding
             
             [mm,nn]=size(obj);
@@ -1119,33 +1307,33 @@ classdef MPOLY
             newobj=obj.diag.sum;
         end
         
-        function newobj = simplify_bis(obj,prec)
-            if nargin<2
-                prec = 1e-8;
-            end
-            newobj = mpoly_matlab.mpolymat(obj.n,size(obj));
-            for idx=1:numel(obj)
-                newobj(idx).pow=[];
-                newobj(idx).coef=[];
-                tpow=obj(idx).pow;
-                tcoef=obj(idx).coef;
-                while ~isempty(tcoef)
-                    % ��ȡͬ����
-                    lst=find(sum(abs(tpow(1,:)-tpow),2)==0);
-                    
-                    % �ϲ�ͬ����ϵ��
-                    v=sum(tcoef(lst));
-                    % �ж�ϵ���Ƿ�Ϊ�� (>prec)
-                    if abs(v)>prec
-                        newobj(idx).coef = [newobj(idx).coef; sum(tcoef(lst))];
-                        newobj(idx).pow = [newobj(idx).pow; tpow(1,:)];
-                    end
-                    tpow(lst,:)=[];
-                    tcoef(lst,:)=[];
-                end
-                newobj(idx).k=length(newobj(idx).coef);
-            end
-        end
+%         function newobj = simplify_bis(obj,prec)
+%             if nargin<2
+%                 prec = 1e-8;
+%             end
+%             newobj = mpoly_matlab.mpolymat(obj.n,size(obj));
+%             for idx=1:numel(obj)
+%                 newobj(idx).pow=[];
+%                 newobj(idx).coef=[];
+%                 tpow=obj(idx).pow;
+%                 tcoef=obj(idx).coef;
+%                 while ~isempty(tcoef)
+%                     % ��ȡͬ����
+%                     lst=find(sum(abs(tpow(1,:)-tpow),2)==0);
+%                     
+%                     % �ϲ�ͬ����ϵ��
+%                     v=sum(tcoef(lst));
+%                     % �ж�ϵ���Ƿ�Ϊ�� (>prec)
+%                     if abs(v)>prec
+%                         newobj(idx).coef = [newobj(idx).coef; sum(tcoef(lst))];
+%                         newobj(idx).pow = [newobj(idx).pow; tpow(1,:)];
+%                     end
+%                     tpow(lst,:)=[];
+%                     tcoef(lst,:)=[];
+%                 end
+%                 newobj(idx).k=length(newobj(idx).coef);
+%             end
+%         end
     end
     
     methods(Static)
@@ -1182,7 +1370,7 @@ classdef MPOLY
             %  See also MPOLY, disp, sdisp, MPOLY.ones, MPOLY.identity
             %
             %% COPYRIGHT:
-            %  Copyright 2019, Yi-Shuai NIU. All Rights Reserved.
+            %  Copyright since 2019, Yi-Shuai NIU. All Rights Reserved.
             %  2019/08/13    Initial Coding
             switch nargin
                 case 0
@@ -1223,7 +1411,7 @@ classdef MPOLY
             %  See also MPOLY, sdisp, MPOLY.zeros, MPOLY.ones
             %
             %% COPYRIGHT:
-            %  Copyright 2019, Yi-Shuai NIU. All Rights Reserved.
+            %  Copyright since 2019, Yi-Shuai NIU. All Rights Reserved.
             %  2019/08/13    Initial Coding
             
             switch nargin
@@ -1265,7 +1453,7 @@ classdef MPOLY
             %  See also MPOLY, sdisp, MPOLY.zeros, MPOLY.identity
             %
             %% COPYRIGHT:
-            %  Copyright 2019, Yi-Shuai NIU. All Rights Reserved.
+            %  Copyright since 2019, Yi-Shuai NIU. All Rights Reserved.
             %  2019/08/13    Initial Coding
             switch nargin
                 case 0
@@ -1301,7 +1489,7 @@ classdef MPOLY
             %  See also MPOLY, nextmonopow, MPOLY.disp, MPOLY.sdisp, nchoosek
             %
             %% COPYRIGHT:
-            %  Copyright 2019, Yi-Shuai NIU. All Rights Reserved.
+            %  Copyright since 2019, Yi-Shuai NIU. All Rights Reserved.
             %  2019/08/13    Initial Coding
             
             lst=MPOLY.ones(n,nchoosek(n+d,d),1);
@@ -1310,6 +1498,50 @@ classdef MPOLY
                 lst(i).pow = pow;
                 pow=nextmonopow(n,pow);
             end
+        end
+        
+        function [P,Ph,B,mncoefs] = transmatconvex(n,d)
+            %MPOLY.transmatconvex
+            %% DESCRIPTION:
+            %  Generate a transformation matrix for convex basis of 
+            %  homogenious polynomials with n variables of degree d.
+            %% SYNTAX:
+            %   P = MPOLY.transmatconvex(n,d)
+            %% INPUTS:
+            %  n: number of variables 
+            %  d: max degree
+            %% OUTPUTS:
+            %  P: transformation matrix
+            %  Ph: transformation matrix without multinomial coefs.
+            %  B: set of all choices to put d balls into n bins.
+            %  mncoefs: multinomial coefficients
+            %% EXAMPLE:
+            %       [P,Ph,B,mncoefs] = MPOLY.transmatconvex(3,2);
+            %%
+            %  See also MPOLY, nextmonopow, MPOLY.monolist, nchoosek
+            %
+            %% COPYRIGHT:
+            %  Copyright 2020, Yi-Shuai NIU. All Rights Reserved.
+            %  2020/07/18    Initial Coding
+            
+            s=nchoosek(d+n-1,d);
+            P = zeros(s,s); % transformation matrix
+            Ph = P; % transformation matrix without multinomial coefs.
+            B = zeros(n,n); % set of all choices to put d balls into n bins.
+            % create B
+            B(1,1) = d; 
+            for i=1:s-1
+                B(i+1,:)=nextmonopow(n,B(i,:));
+            end
+            % create Ph
+            for i=1:s
+                for j=1:s
+                    Ph(i,j) = prod(B(i,:).^B(j,:));
+                end
+            end
+            % create P
+            mncoefs=factorial(d)./prod(factorial(B'));
+            P=mncoefs.*Ph;
         end
         
         function vars = mpolyvars(n)
@@ -1334,7 +1566,7 @@ classdef MPOLY
             %  See also mpoly, MPOLY.zeros
             %
             %% COPYRIGHT:
-            %  Copyright 2019, Yi-Shuai NIU. All Rights Reserved.
+            %  Copyright since 2019, Yi-Shuai NIU. All Rights Reserved.
             %  2019/08/13    Initial Coding
             
             if n< 0 && norm(n-round(n),1)~=0
@@ -1368,7 +1600,7 @@ classdef MPOLY
             %  See also mpoly, MPOLY.zeros
             %
             %% COPYRIGHT:
-            %  Copyright 2019, Yi-Shuai NIU. All Rights Reserved.
+            %  Copyright since 2019, Yi-Shuai NIU. All Rights Reserved.
             %  2019/08/13    Initial Coding
             
             if isa(obj,'double')
@@ -1388,6 +1620,57 @@ classdef MPOLY
             else
                 error('unknown object type');
             end
+        end
+        
+        function q = quadprod(Q,b)
+            %MPOLY.quadprod
+            %% DESCRIPTION:
+            %  Fast computation of b'Qb
+            %
+            %% SYNTAX:
+            %   q = MPOLY.quadprod(Q,b)
+            %% INPUTS:
+            %  Q: a double symmetric matrix
+            %  b: a list of monomials
+            %
+            %% OUTPUTS:
+            %  q: result polynomial
+            %
+            %% EXAMPLE:
+            %       Q = rand(3,3); Q=Q+Q';
+            %       x = polylabvar(5);
+            %       b = [x(1);x(2)*x(3);x(4)*x(5)];
+            %       q = MPOLY.quadprod(Q,b);
+            %       q.sdisp;
+            %%
+            %  See also MPOLY, sdisp, times, polylabvar
+            %
+            %% COPYRIGHT:
+            %  Copyright since 2019, Yi-Shuai NIU. All Rights Reserved.
+            %  2020/10/11    Initial Coding
+            
+            % get the number of variables
+            n=b(1).n;
+            % get the lenght of monomials
+            lenb=length(b);
+            % the size of Q is lenb*lenb
+            % the number of monomials in q (without simplification) is lenb*(lenb+1)/2
+            lenq=lenb*(lenb+1)/2;
+            powq=zeros(lenq,n); % powq is the pow list of quadratic form b'*Q*b
+            coefq=ones(lenq,1); % coefq is the leading coefficients of b'*Q*b
+            idx=1;
+            for i=1:lenb
+                for j=i:lenb
+                    powq(idx,:)=b(i).pow+b(j).pow;
+                    if (i==j)
+                        coefq(idx)=Q(i,i); % for Qii*bi*bi
+                    else
+                        coefq(idx)=2*Q(i,j); % for 2*Qij*bi*bj with i<j
+                    end
+                    idx=idx+1;
+                end
+            end
+            q=MPOLY(n,coefq,powq);
         end
     end
 end
@@ -1454,7 +1737,7 @@ function [newobj1,newobj2] = sizeunified(obj1,obj2)
     %  See also mpoly_plus, mpoly_times
     %
     %% COPYRIGHT:
-    %  Copyright 2019, Yi-Shuai NIU. All Rights Reserved.
+    %  Copyright since 2019, Yi-Shuai NIU. All Rights Reserved.
     %  2019/08/13    Initial Coding
     
     len1 = numel(obj1);
@@ -1530,7 +1813,7 @@ function p = repmpoly(n,r,mm,nn)
     %  See also mpoly, mpolymat
     %
     %% COPYRIGHT:
-    %  Copyright 2019, Yi-Shuai NIU. All Rights Reserved.
+    %  Copyright since 2019, Yi-Shuai NIU. All Rights Reserved.
     %  2019/08/13    Initial Coding
     
     p = MPOLY.zeros(n,mm,nn);
@@ -1546,7 +1829,7 @@ function p = repmpoly(n,r,mm,nn)
 end
 
 function p = double2mpoly(n,r)
-    %DOUBLE2MPOLYMAT - convert a doouble matrix to polynomial matrix
+    %DOUBLE2MPOLYMAT - convert a double matrix to polynomial matrix
     %
     %% SYNTAX:
     %   p = double2mpoly(n,r)
@@ -1565,7 +1848,7 @@ function p = double2mpoly(n,r)
     % See also mpoly
     %
     %% COPYRIGHT:
-    % Copyright 2019, Yi-Shuai NIU. All Rights Reserved.
+    % Copyright since 2019, Yi-Shuai NIU. All Rights Reserved.
     % 2019/08/13    Initial Coding
     
     % convert double matrix r to a polynomial matrix with n variables
@@ -1593,7 +1876,7 @@ function x = nextmonopow (n, pow)
     %  See also mpoly
     %
     %% COPYRIGHT:
-    %  Copyright 2019, Yi-Shuai NIU. All Rights Reserved.
+    %  Copyright since 2019, Yi-Shuai NIU. All Rights Reserved.
     %  2019/08/13    Initial Coding
     
     x = pow;
@@ -1620,3 +1903,4 @@ function x = nextmonopow (n, pow)
         x(idx)=0;
     end
 end
+
