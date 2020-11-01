@@ -1,13 +1,14 @@
-function x=polylabvar(n)
+function x=polylabvar(n,type)
     %polylabvar
     %% DESCRIPTION:
     %  Create a polylab variable of dimension n x 1
     %
     %% SYNTAX:
-    %  x = polylabvar(n);
+    %  x = polylabvar(n,type);
     %
     %% INPUTS:
     %  n: number of variables (scalar only).
+    %  type: 'cpu' or 'gpu'
     %
     %% OUTPUTS:
     %  x: polylab matrix
@@ -22,6 +23,14 @@ function x=polylabvar(n)
     %% COPYRIGHT:
     %  Copyright 2019, Yi-Shuai NIU. All Rights Reserved.
     %  2019/08/13    Initial Coding
-    
-    x = MPOLY.mpolyvars(n);
+    %  2020/10/31    Support GPU
+    if nargin<2
+        type='cpu';
+    end
+    switch type
+        case 'cpu'
+          x = MPOLY.mpolyvars(n);
+        case 'gpu'
+          x = MPOLY_GPU.mpolyvars(n);
+    end
 end

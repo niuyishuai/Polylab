@@ -31,7 +31,13 @@ function p=mpoly2yalmip(P,x)
         error('dimensions of P and x must be matched!');
     end
     p=sdpvar(size(P,1),size(P,2));
-    for i=1:numel(P)
-        p(i)=prod((x(:)*ones(1,P(i).k)).^(P(i).pow'))*P(i).coef(:);
+    if isa(P,'MPOLY_GPU')
+        for i=1:numel(P)
+            p(i)=prod((x(:)*ones(1,P(i).k)).^(gather(P(i).pow)'))*gather(P(i).coef(:));
+        end
+    else
+        for i=1:numel(P)
+            p(i)=prod((x(:)*ones(1,P(i).k)).^(P(i).pow'))*P(i).coef(:);
+        end
     end
 end
